@@ -1,0 +1,32 @@
+name: Build daily Reddit RSS
+
+on:
+  schedule:
+    - cron: "15 6 * * *"  # daily at 06:15 UTC (~1:15am ET)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate feed
+        run: python scripts/build_feed.py
+
+      - name: Commit changes (if any)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/feed.xml docs/index.html
+          git diff --cached --quiet || git commit -m "Update daily feed"
+          git push
