@@ -6,7 +6,8 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 USER_AGENT = "Mozilla/5.0 (compatible; reddit-rss-daily-bot/1.0; +https://github.com/)"
-BASE = "http://127.0.0.1:8080/r/{sub}/top/.rss?sort=top&t=day&limit=10"
+BASE = "https://www.reddit.com/r/{sub}/top/.rss?sort=top&t=day&limit=10"
+REDLIB = "http://127.0.0.1:8080"
 
 def fetch_xml(url: str) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -67,9 +68,10 @@ def main():
         entries = parse_atom_entries(xml)
         for e in entries:
             title = f"[r/{sub}] {e['title']}"
+            link = e["link"].replace("https://www.reddit.com", REDLIB)
             all_items.append({
                 "title": title,
-                "link": e["link"],
+                "link": link,
                 "guid": e["id"] or f"{sub}:{e['link']}",
                 "pubDate": atom_time_to_rfc822(e["updated"]),
                 "updated_raw": e["updated"],
