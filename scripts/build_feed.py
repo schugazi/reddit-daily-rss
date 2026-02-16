@@ -6,7 +6,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 USER_AGENT = "Mozilla/5.0 (compatible; reddit-rss-daily-bot/1.0; +https://github.com/)"
-BASE = "https://www.reddit.com/r/{sub}/top/.rss?sort=top&t=day&limit=10"
+BASE = "http://127.0.0.1:8080/r/{sub}/top/.rss?sort=top&t=day&limit=10"
 
 def fetch_xml(url: str) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -39,7 +39,7 @@ def build_rss(items):
     rss = Element("rss", version="2.0")
     channel = SubElement(rss, "channel")
     SubElement(channel, "title").text = "Reddit: Daily Top 10 (combined)"
-    SubElement(channel, "link").text = "https://www.reddit.com/"
+    SubElement(channel, "link").text = "http://127.0.0.1:8080/"
     SubElement(channel, "description").text = "Auto-generated daily snapshot of top posts."
     SubElement(channel, "lastBuildDate").text = dt.datetime.now(dt.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
 
