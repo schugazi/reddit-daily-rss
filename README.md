@@ -1,6 +1,6 @@
 # Reddit Daily RSS
 
-A self-updating RSS feed that aggregates the top 10 daily posts from your chosen subreddits. Powered by GitHub Actions — no server required.
+A self-updating RSS feed that aggregates the top 5 daily posts from your chosen subreddits. Powered by GitHub Actions — no server required.
 
 ## How it works
 

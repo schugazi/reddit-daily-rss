@@ -6,7 +6,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 USER_AGENT = "Mozilla/5.0 (compatible; reddit-rss-daily-bot/1.0; +https://github.com/)"
-BASE = "https://www.reddit.com/r/{sub}/top/.rss?sort=top&t=day&limit=10"
+BASE = "https://www.reddit.com/r/{sub}/top/.rss?sort=top&t=day&limit=5"
 REDLIB = "http://127.0.0.1:8080"
 
 def fetch_xml(url: str) -> str:
@@ -39,7 +39,7 @@ def atom_time_to_rfc822(s: str) -> str:
 def build_rss(items):
     rss = Element("rss", version="2.0")
     channel = SubElement(rss, "channel")
-    SubElement(channel, "title").text = "Reddit: Daily Top 10 (combined)"
+    SubElement(channel, "title").text = "Reddit: Daily Top 5 (combined)"
     SubElement(channel, "link").text = "http://127.0.0.1:8080/"
     SubElement(channel, "description").text = "Auto-generated daily snapshot of top posts."
     SubElement(channel, "lastBuildDate").text = dt.datetime.now(dt.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
@@ -91,9 +91,9 @@ def main():
     # Simple index page
     idx = f"""<!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Reddit Daily Top 10 Feed</title></head>
+<head><meta charset="utf-8"><title>Reddit Daily Top 5 Feed</title></head>
 <body>
-  <h1>Reddit Daily Top 10 (combined)</h1>
+  <h1>Reddit Daily Top 5 (combined)</h1>
   <p><a href="feed.xml">feed.xml</a></p>
   <h2>Subreddits</h2>
   <ul>
