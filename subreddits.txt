@@ -38,3 +38,6 @@ chatgpt
 shortcuts
 zaiglm
 opensource
+mariners
+nba
+nbacirclejerk
