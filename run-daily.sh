@@ -5,16 +5,8 @@ cd "$(dirname "$0")"
 
 echo "$(date -Iseconds) Starting reddit-daily-rss build"
 
-git pull --ff-only
-
+# No git in the loop: this repo no longer publishes to GitHub Pages. `personal-feed`
+# reads docs/*.xml off disk directly, so the build just regenerates the local feeds.
 python3 scripts/build_feed.py
 
-git add docs/
-if git diff --cached --quiet; then
-  echo "No changes to commit."
-  exit 0
-fi
-
-git commit -m "Update daily feed"
-git push
-echo "$(date -Iseconds) Done — changes pushed"
+echo "$(date -Iseconds) Done — feeds written to docs/"

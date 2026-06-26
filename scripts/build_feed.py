@@ -3,6 +3,7 @@ import glob
 import os
 import random
 import sys
+import tempfile
 import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
@@ -13,7 +14,6 @@ import xml.etree.ElementTree as ET
 USER_AGENT = "Mozilla/5.0 (compatible; reddit-rss-daily-bot/1.0; +https://github.com/)"
 BASE = "https://www.reddit.com/r/{sub}/top/.rss?sort=top&t=day&limit=5"
 REDLIB = "http://127.0.0.1:8080"
-PAGES_URL = "https://nmschuster.github.io/reddit-daily-rss"
 
 # Authenticated RSS credentials (Reddit username + per-account feed token) let us
 # bypass Reddit's aggressive unauthenticated rate limit. Loaded from the
@@ -159,21 +159,6 @@ def build_rss(sub: str, items):
         SubElement(item, "pubDate").text = it["pubDate"]
     return rss
 
-def build_opml(subs):
-    opml = Element("opml", version="2.0")
-    head = SubElement(opml, "head")
-    SubElement(head, "title").text = "Reddit Daily Top 5 Feeds"
-    SubElement(head, "dateCreated").text = dt.datetime.now(dt.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
-    body = SubElement(opml, "body")
-    for sub in subs:
-        SubElement(body, "outline",
-                   type="rss",
-                   text=f"r/{sub}",
-                   title=f"Reddit: r/{sub} Daily Top 5",
-                   xmlUrl=f"{PAGES_URL}/{sub}.xml",
-                   htmlUrl=f"https://www.reddit.com/r/{sub}")
-    return opml
-
 def cleanup_stale_feeds(out_dir: str, current_subs: list[str]):
     valid_files = {f"{sub}.xml" for sub in current_subs}
     for path in glob.glob(os.path.join(out_dir, "*.xml")):
@@ -210,10 +195,28 @@ def build_one(sub: str, out_dir: str, user=None, feed=None) -> bool:
     rss_bytes = tostring(rss, encoding="utf-8", xml_declaration=True)
 
     feed_path = os.path.join(out_dir, f"{sub}.xml")
-    with open(feed_path, "wb") as f:
-        f.write(rss_bytes)
+    _atomic_write_bytes(feed_path, rss_bytes)
 
     return True
+
+
+def _atomic_write_bytes(path: str, data: bytes) -> None:
+    """Write via a temp file + os.replace so a reader (e.g. personal-feed's poll)
+    never sees a half-written, truncated feed mid-build."""
+    out_dir = os.path.dirname(path)
+    fd, tmp = tempfile.mkstemp(dir=out_dir, prefix=os.path.basename(path), suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 def main():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -288,35 +291,10 @@ def main():
         print("ERROR: all subreddits failed, exiting with error", file=sys.stderr)
         sys.exit(1)
 
-    # Generate OPML
-    opml = build_opml(subs)
-    opml_bytes = tostring(opml, encoding="utf-8", xml_declaration=True)
-    with open(os.path.join(out_dir, "feeds.opml"), "wb") as f:
-        f.write(opml_bytes)
-
-    # Remove stale feed files
+    # Remove stale feed files (subs removed from subreddits.txt). The GitHub Pages
+    # artifacts (feeds.opml / index.html) are no longer emitted — `personal-feed`,
+    # reading docs/*.xml off disk, is the sole consumer now.
     cleanup_stale_feeds(out_dir, subs)
-
-    # Index page
-    feed_links = "\n    ".join(
-        f'<li><a href="{s}.xml">r/{s}</a></li>' for s in subs
-    )
-    idx = f"""<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Reddit Daily Top 5 Feeds</title></head>
-<body>
-  <h1>Reddit Daily Top 5 Feeds</h1>
-  <p><a href="feeds.opml">Import all feeds (OPML)</a></p>
-  <h2>Individual Feeds</h2>
-  <ul>
-    {feed_links}
-  </ul>
-  <p>Last built: {dt.datetime.now(dt.timezone.utc).isoformat()}</p>
-</body>
-</html>
-"""
-    with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
-        f.write(idx)
 
 if __name__ == "__main__":
     main()
