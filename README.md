@@ -1,6 +1,6 @@
 # Reddit Daily RSS
 
-> **⚠️ Retired — folded into [`personal-feed`](https://github.com/schugazi/personal-feed).** This generator now lives inside that app as `app/reddit_build.py`, run by the `feed-reddit-build` systemd user timer, writing to `personal-feed/data/reddit/`. This standalone repo is kept only as history; nothing runs from it. The notes below describe how it worked.
+> **⚠️ Retired — folded into the `personal-feed` app** (host-native on the mycroftxxx server). This generator now lives inside that app as `app/reddit_build.py`, run by the `feed-reddit-build` systemd user timer, writing to `personal-feed/data/reddit/`. This standalone repo is kept only as history; nothing runs from it. The notes below describe how it worked.
 
 A local generator that aggregates the top 5 daily posts from your chosen subreddits into per-subreddit RSS 2.0 files. Runs daily on this server via a systemd user timer.
 
