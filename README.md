@@ -1,5 +1,7 @@
 # Reddit Daily RSS
 
+> **⚠️ Retired — folded into [`personal-feed`](https://github.com/schugazi/personal-feed).** This generator now lives inside that app as `app/reddit_build.py`, run by the `feed-reddit-build` systemd user timer, writing to `personal-feed/data/reddit/`. This standalone repo is kept only as history; nothing runs from it. The notes below describe how it worked.
+
 A local generator that aggregates the top 5 daily posts from your chosen subreddits into per-subreddit RSS 2.0 files. Runs daily on this server via a systemd user timer.
 
 > **This repo is now a local-only feed generator for [`personal-feed`](../personal-feed).** `personal-feed` reads `docs/*.xml` straight off disk as the **sole consumer**, so the old GitHub Pages publishing tail has been removed: **no `git pull`/`commit`/`push` in the daily loop, no OPML/landing page, and `docs/` is untracked** (generated feeds live untracked on disk; the repo versions only code). This eliminated the whole git-state footgun class. If you ever want a public/static feed reader again, re-add a publish step — but nothing consumes Pages today.
